@@ -17,7 +17,7 @@ func readMessages(conn *net.UDPConn) {
 	var peer *net.UDPAddr
 	go func() {
 		for {
-			length, address, err := conn.ReadFromUDP(buffer[:])
+			length, _, err := conn.ReadFromUDP(buffer[:])
 			if err != nil {
 				continue
 			}
@@ -29,13 +29,15 @@ func readMessages(conn *net.UDPConn) {
 			// On server peer set
 			if request.Room == ServerAuth {
 				peer, err = net.ResolveUDPAddr("udp4", request.Data)
+				if err != nil {
+					panic(err)
+				}
 				fmt.Print(">")
 				continue
 			}
 			// On message
-			if address == peer {
-				fmt.Printf("\r%s: %s>", request.Room, request.Data)
-			}
+			//if address == peer { }
+			fmt.Printf("\r%s: %s>", request.Room, request.Data)
 		}
 	}()
 	for {
