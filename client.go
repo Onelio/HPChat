@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 )
 
 var port = flag.String("port", ":",
@@ -51,7 +52,11 @@ func readMessages(conn *net.UDPConn) {
 		reader := bufio.NewReader(os.Stdin)
 		text, _ := reader.ReadString('\n')
 
-		//conn.SetWriteDeadline(time.Now().Add(1 * time.Second))
+		// On close
+		if strings.HasPrefix(text, "/quit") {
+			conn.Close()
+			break
+		}
 		if peer == nil {
 			continue
 		}
@@ -92,4 +97,5 @@ func main() {
 
 	// Proceed to listen area
 	readMessages(conn)
+	fmt.Println("\nBye")
 }
