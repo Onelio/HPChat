@@ -24,7 +24,7 @@ func readMessages(conn *net.UDPConn) {
 	var peer *net.UDPAddr
 	go func() {
 		for {
-			length, _, err := conn.ReadFromUDP(buffer[:])
+			length, address, err := conn.ReadFromUDP(buffer[:])
 			if err != nil {
 				continue
 			}
@@ -45,6 +45,14 @@ func readMessages(conn *net.UDPConn) {
 				continue
 			}
 			// On message
+			if peer.String() != address.String() {
+				continue
+			}
+			if strings.HasPrefix(request.Data, "/quit") {
+				fmt.Printf("\rPeer %s closed connection...\n",
+					request.Room)
+				os.Exit(0)
+			}
 			fmt.Printf("\r%s: %s>", request.Room, request.Data)
 		}
 	}()
@@ -52,20 +60,19 @@ func readMessages(conn *net.UDPConn) {
 		reader := bufio.NewReader(os.Stdin)
 		text, _ := reader.ReadString('\n')
 
+		if peer == nil {
+			continue
+		}
+		data, _ := json.Marshal(&ChatRequest{
+			Room: *user,
+			Data: text,
+		})
+		_, _ = conn.WriteToUDP(data, peer)
 		// On close
 		if strings.HasPrefix(text, "/quit") {
 			conn.Close()
 			break
 		}
-		if peer == nil {
-			continue
-		}
-		var request = ChatRequest{
-			Room: *user,
-			Data: text,
-		}
-		data, _ := json.Marshal(&request)
-		_, _ = conn.WriteToUDP(data, peer)
 		fmt.Print(">")
 	}
 }
@@ -97,5 +104,5 @@ func main() {
 
 	// Proceed to listen area
 	readMessages(conn)
-	fmt.Println("\nBye")
+	fmt.Println("Bye")
 }
