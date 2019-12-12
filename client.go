@@ -12,6 +12,12 @@ import (
 var port = flag.String("port", ":",
 	"Set listen port")
 
+var room = flag.String("room", "ChatRoomNum_01",
+	"Room access surname")
+
+var user = flag.String("user", "UnknownUserName",
+	"Room peers username")
+
 func readMessages(conn *net.UDPConn) {
 	var buffer [1024]byte
 	var peer *net.UDPAddr
@@ -32,11 +38,10 @@ func readMessages(conn *net.UDPConn) {
 				if err != nil {
 					panic(err)
 				}
-				fmt.Print(">")
+				fmt.Printf("\rEnter room %s\n>", *room)
 				continue
 			}
 			// On message
-			//if address == peer { }
 			fmt.Printf("\r%s: %s>", request.Room, request.Data)
 		}
 	}()
@@ -48,7 +53,12 @@ func readMessages(conn *net.UDPConn) {
 		if peer == nil {
 			continue
 		}
-		_, _ = conn.WriteToUDP([]byte(text), peer)
+		var request = ChatRequest{
+			Room: *user,
+			Data: text,
+		}
+		data, _ := json.Marshal(&request)
+		_, _ = conn.WriteToUDP(data, peer)
 		fmt.Print(">")
 	}
 }
