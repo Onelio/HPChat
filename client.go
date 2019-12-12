@@ -38,6 +38,8 @@ func readMessages(conn *net.UDPConn) {
 				if err != nil {
 					panic(err)
 				}
+				// Set first message
+				_, _ = conn.WriteToUDP([]byte("test"), peer)
 				fmt.Printf("\rEnter room %s\n>", *room)
 				continue
 			}
